@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	httpkit "github.com/dalton02/licor/http"
+	"github.com/dalton02/licor/httpkit"
 	"github.com/dalton02/licor/validator"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	httpkit "github.com/dalton02/licor/http"
+	"github.com/dalton02/licor/httpkit"
 	"github.com/rs/cors"
 )
 
