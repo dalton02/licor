@@ -131,9 +131,13 @@ func protected[B any, Q any](response http.ResponseWriter, request *http.Request
 	var valid bool
 	var message httpkit.HttpMessage
 
-	switch CurrentProtection {
+	switch currentProtection {
 	case "bearerTokenAuthorizationHeader":
-		valid, request, message = AuthorizationHeader(response, request, extras)
+		valid, request, message = authorizationHeader(response, request, extras)
+	case "custom":
+		valid, request, message = customProtection(response, request, extras)
+	default:
+		valid, request, message = authorizationHeader(response, request, extras)
 
 	}
 

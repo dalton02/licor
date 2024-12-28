@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -32,35 +33,43 @@ func access(response http.ResponseWriter, request *http.Request) httpkit.HttpMes
 	return httpkit.AppSucess("Your token information: ", dataToken)
 
 }
-func accessAdmin(response http.ResponseWriter, request *http.Request) httpkit.HttpMessage {
 
-	fmt.Println("If your user is a admin user, this function will be executed")
+func accessAdmin(response http.ResponseWriter, request *http.Request) httpkit.HttpMessage {
 	dataToken, _ := httpkit.GetDataToken(request)
 	return httpkit.AppSucess("Your token information: ", dataToken)
+}
 
+func custom(response http.ResponseWriter, request *http.Request, extras ...any) (bool, *http.Request, httpkit.HttpMessage) {
+	var message httpkit.HttpMessage
+	ctx := context.WithValue(request.Context(), "someData", "The main function will recieve this information")
+	return true, request.WithContext(ctx), message
+}
+
+type q struct {
+	Queryzinha string `query:"queryzinha" validator:"dateString"`
 }
 
 func main() {
 
-	//Basic Configuration of a licor setup
 	licor.SetCustomInvalidTokenMessage("Token invalido/expirado")
 	licor.SetCustomNotAuthorizedMessage("Perfil não tem acesso ao conteudo atual")
-	licor.SetBearerTokenAuthorizationHeader() //Authorization via bearer token in the authorization header http
+
+	licor.SetCustomProtection(custom)
 
 	licor.Public[any, any]("/retrieve").Get(retrieve)
 	licor.Protected[any, any]("/access").Get(access)
-	licor.Protected[any, any]("/access-admin", "admin").Get(accessAdmin)
+	licor.Protected[any, q]("/access-admin", "admin").Get(accessAdmin)
 
 	licor.Init("3003")
 }
 
-func Middle1(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
+func middle1(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
 	var message httpkit.HttpMessage
 	fmt.Println("Everything good around here, will proceed to the next middleware")
 	return message, true
 }
 
-func Middle2(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
+func middle2(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
 	var message httpkit.HttpMessage
 	message = httpkit.AppBadRequest("Something went wrong, can't proceed operation")
 	return message, false

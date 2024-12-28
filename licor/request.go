@@ -1,6 +1,7 @@
 package licor
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -42,9 +43,9 @@ func Init(porta string) {
 	})
 
 	corsHandler := c.Handler(http.DefaultServeMux)
+	fmt.Println("Licor running in port: " + porta)
 
 	err := http.ListenAndServe(":"+porta, corsHandler)
-	fmt.Println("Server running in port:" + porta)
 	if err != nil {
 		fmt.Println("Erro no servidor: ", err)
 	}
@@ -64,6 +65,15 @@ func Protected[B any, Q any](rota string, extra ...any) Requests {
 	}
 }
 
+func sendHttpMessage(message httpkit.HttpMessage, response http.ResponseWriter) {
+	json.Marshal(message)
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(message.StatusCode)
+	if err := json.NewEncoder(response).Encode(message); err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (r *HandlerRequest[B, Q]) FormData(handlerFunc func(http.ResponseWriter, *http.Request) httpkit.HttpMessage, middlewares ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool)) {
 	r.controller = handlerFunc
 	r.middlewares = middlewares
@@ -74,7 +84,7 @@ func (r *HandlerRequest[B, Q]) FormData(handlerFunc func(http.ResponseWriter, *h
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
@@ -93,12 +103,12 @@ func (r *HandlerRequest[B, Q]) Get(handlerFunc func(http.ResponseWriter, *http.R
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
 
-		httpkit.SendHttpMessage(generic[B, Q](response, request, r, "GET"), response)
+		sendHttpMessage(generic[B, Q](response, request, r, "GET"), response)
 	})
 }
 func (r *HandlerRequest[B, Q]) Post(handlerFunc func(http.ResponseWriter, *http.Request) httpkit.HttpMessage, middlewares ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool)) {
@@ -111,12 +121,12 @@ func (r *HandlerRequest[B, Q]) Post(handlerFunc func(http.ResponseWriter, *http.
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
 
-		httpkit.SendHttpMessage(generic[B, Q](response, request, r, "POST"), response)
+		sendHttpMessage(generic[B, Q](response, request, r, "POST"), response)
 	})
 }
 func (r *HandlerRequest[B, Q]) Put(handlerFunc func(http.ResponseWriter, *http.Request) httpkit.HttpMessage, middlewares ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool)) {
@@ -129,12 +139,12 @@ func (r *HandlerRequest[B, Q]) Put(handlerFunc func(http.ResponseWriter, *http.R
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
 
-		httpkit.SendHttpMessage(generic[B, Q](response, request, r, "PUT"), response)
+		sendHttpMessage(generic[B, Q](response, request, r, "PUT"), response)
 	})
 }
 func (r *HandlerRequest[B, Q]) Patch(handlerFunc func(http.ResponseWriter, *http.Request) httpkit.HttpMessage, middlewares ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool)) {
@@ -147,12 +157,12 @@ func (r *HandlerRequest[B, Q]) Patch(handlerFunc func(http.ResponseWriter, *http
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
 
-		httpkit.SendHttpMessage(generic[B, Q](response, request, r, "PATCH"), response)
+		sendHttpMessage(generic[B, Q](response, request, r, "PATCH"), response)
 	})
 }
 func (r *HandlerRequest[B, Q]) Delete(handlerFunc func(http.ResponseWriter, *http.Request) httpkit.HttpMessage, middlewares ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool)) {
@@ -165,11 +175,11 @@ func (r *HandlerRequest[B, Q]) Delete(handlerFunc func(http.ResponseWriter, *htt
 					return
 				}
 				fmt.Println(err)
-				httpkit.SendHttpMessage(httpkit.AppInternal("internal error"), response)
+				sendHttpMessage(httpkit.AppInternal("internal error"), response)
 				return
 			}
 		}()
 
-		httpkit.SendHttpMessage(generic[B, Q](response, request, r, "DELETE"), response)
+		sendHttpMessage(generic[B, Q](response, request, r, "DELETE"), response)
 	})
 }
