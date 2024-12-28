@@ -78,9 +78,9 @@ func generic[B any, Q any](response http.ResponseWriter, request *http.Request, 
 	}
 
 	if strings.HasPrefix(contentType, "multipart/form-data") {
-		passFormData := limitFormData(10, request)
+		passFormData := limitFormData(maxSizeFormData, request)
 		if !passFormData {
-			return httpkit.AppBadRequest("Arquivo excedeu o limite de " + strconv.Itoa(10) + " MegaBytes")
+			return httpkit.AppBadRequest("Arquivo excedeu o limite de " + strconv.Itoa(maxSizeFormData) + " MegaBytes")
 		}
 	}
 

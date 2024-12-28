@@ -51,6 +51,7 @@ type q struct {
 
 func main() {
 
+	licor.SetMaxSizeFormData(10)
 	licor.SetCustomInvalidTokenMessage("Token invalido/expirado")
 	licor.SetCustomNotAuthorizedMessage("Perfil não tem acesso ao conteudo atual")
 
