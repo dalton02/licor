@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/dalton02/licor/httpkit"
-	"github.com/rs/cors"
 )
 
 type Requests interface {
@@ -22,10 +21,6 @@ type MiddleRequest interface {
 	MiddleWare(middleware ...func(http.ResponseWriter, *http.Request) (httpkit.HttpMessage, bool))
 }
 
-func nothing(response http.ResponseWriter, request *http.Request) bool {
-	return true
-}
-
 type HandlerRequest[B any, Q any] struct {
 	endpoint    string
 	security    string
@@ -35,14 +30,8 @@ type HandlerRequest[B any, Q any] struct {
 }
 
 func Init(porta string) {
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Permitir os métodos HTTP
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},           // Permitir cabeçalhos
-		AllowCredentials: true,                                                // Permitir cookies ou autenticação
-	})
 
-	corsHandler := c.Handler(http.DefaultServeMux)
+	corsHandler := corsConfig.Handler(http.DefaultServeMux)
 	fmt.Println("Licor running in port: " + porta)
 
 	err := http.ListenAndServe(":"+porta, corsHandler)

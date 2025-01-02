@@ -56,13 +56,13 @@ func GetDataToken(request *http.Request) (map[string]interface{}, error) {
 	return tokenData, err
 }
 
-func GenerateJwt[T any](data T) (string, error) {
+func GenerateJwt[T any](data T, minutes int) (string, error) {
 	secretKey := os.Getenv("JWT_SECRET")
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
 	claims["data"] = data
-	claims["exp"] = time.Now().Add(30 * time.Hour).Unix()
+	claims["exp"] = time.Now().Add(time.Duration(minutes) * time.Minute).Unix()
 	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err

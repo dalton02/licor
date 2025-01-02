@@ -7,6 +7,7 @@ import (
 
 	"github.com/dalton02/licor/httpkit"
 	"github.com/dalton02/licor/licor"
+	"github.com/rs/cors"
 )
 
 func retrieve(response http.ResponseWriter, request *http.Request) httpkit.HttpMessage {
@@ -14,7 +15,7 @@ func retrieve(response http.ResponseWriter, request *http.Request) httpkit.HttpM
 		"profile": "user",
 		"name":    "Dalton",
 	}
-	token, err := httpkit.GenerateJwt(jwtData)
+	token, err := httpkit.GenerateJwt(jwtData, 30)
 
 	if err != nil {
 		return httpkit.AppBadRequest(err.Error())
@@ -54,8 +55,14 @@ func main() {
 	licor.SetMaxSizeFormData(10)
 	licor.SetCustomInvalidTokenMessage("Token invalido/expirado")
 	licor.SetCustomNotAuthorizedMessage("Perfil não tem acesso ao conteudo atual")
-
 	licor.SetCustomProtection(custom)
+
+	licor.SetCors(cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	licor.Public[any, any]("/retrieve").Get(retrieve)
 	licor.Protected[any, any]("/access").Get(access)
