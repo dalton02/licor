@@ -20,8 +20,8 @@ type App interface {
 	AppNotFound(handlerFunc func(message string) HttpMessage)
 	AppInternal(handlerFunc func(message string) HttpMessage)
 	AppNotImplemented(handlerFunc func(message string) HttpMessage)
-	AppSucess(handlerFunc func(message string, data any) HttpMessage)
-	AppSucessCreate(handlerFunc func(message string, data any) HttpMessage)
+	AppSuccess(handlerFunc func(message string, data any) HttpMessage)
+	AppSuccessCreate(handlerFunc func(message string, data any) HttpMessage)
 }
 
 func AppSucess(message string, data any) HttpMessage {
