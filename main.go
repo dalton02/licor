@@ -25,19 +25,19 @@ func retrieve(response http.ResponseWriter, request *http.Request) httpkit.HttpM
 		"token": token,
 	}
 
-	return httpkit.AppSucess("Here's your token", jsonResponse)
+	return httpkit.AppSuccess("Here's your token", jsonResponse)
 }
 func access(response http.ResponseWriter, request *http.Request) httpkit.HttpMessage {
 
 	fmt.Println("If you have a valid token generated in the authorization header, this function will be executed")
 	dataToken, _ := httpkit.GetDataToken(request)
-	return httpkit.AppSucess("Your token information: ", dataToken)
+	return httpkit.AppSuccess("Your token information: ", dataToken)
 
 }
 
 func accessAdmin(response http.ResponseWriter, request *http.Request) httpkit.HttpMessage {
 	dataToken, _ := httpkit.GetDataToken(request)
-	return httpkit.AppSucess("Your token information: ", dataToken)
+	return httpkit.AppSuccess("Your token information: ", dataToken)
 }
 
 func custom(response http.ResponseWriter, request *http.Request, extras ...any) (bool, *http.Request, httpkit.HttpMessage) {

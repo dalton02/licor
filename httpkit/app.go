@@ -24,11 +24,11 @@ type App interface {
 	AppSuccessCreate(handlerFunc func(message string, data any) HttpMessage)
 }
 
-func AppSucess(message string, data any) HttpMessage {
+func AppSuccess(message string, data any) HttpMessage {
 	return GenerateHttpMessage(200, data, message)
 }
 
-func AppSucessCreate(message string, data any) HttpMessage {
+func AppSuccessCreate(message string, data any) HttpMessage {
 	return GenerateHttpMessage(201, data, message)
 }
 func AppConflict(message string) HttpMessage {
