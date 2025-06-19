@@ -3,7 +3,10 @@ package licor
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/dalton02/licor/httpkit"
 )
@@ -30,14 +33,39 @@ type HandlerRequest[B any, Q any] struct {
 }
 
 func Init(porta string) {
+	const maxTentativas = 30
 
-	corsHandler := corsConfig.Handler(http.DefaultServeMux)
-	fmt.Println("Licor running in port: " + porta)
-
-	err := http.ListenAndServe(":"+porta, corsHandler)
+	// Converte a porta inicial para inteiro
+	portaInt, err := strconv.Atoi(porta)
 	if err != nil {
-		fmt.Println("Erro no servidor: ", err)
+		fmt.Printf("Erro: porta inválida %s: %v\n", porta, err)
+		return
 	}
+
+	for tentativa := 0; tentativa < maxTentativas; tentativa++ {
+		portaAtual := portaInt + tentativa
+		portaStr := strconv.Itoa(portaAtual)
+
+		corsHandler := corsConfig.Handler(http.DefaultServeMux)
+
+		listener, err := net.Listen("tcp", ":"+portaStr)
+		if err != nil {
+			if strings.Contains(err.Error(), "address already in use") {
+				fmt.Printf("Porta %s em uso, tentando porta %d\n", portaStr, portaAtual+1)
+				continue
+			}
+			fmt.Printf("Erro ao tentar usar a porta %s: %v\n", portaStr, err)
+			return
+		}
+
+		fmt.Printf("Licor rodando na porta: %s\n", portaStr)
+		err = http.Serve(listener, corsHandler)
+		if err != nil {
+			fmt.Printf("Erro no servidor na porta %s: %v\n", portaStr, err)
+			return
+		}
+	}
+
 }
 
 func Public[B any, Q any](rota string) Requests {
