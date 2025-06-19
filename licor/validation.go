@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,24 +13,29 @@ import (
 	"github.com/dalton02/licor/validator"
 )
 
-func readBody(request *http.Request, response http.ResponseWriter) ([]byte, error) {
+func readBody(request *http.Request) ([]byte, error) {
 	var buf bytes.Buffer
 	tee := io.TeeReader(request.Body, &buf)
-	body, err := ioutil.ReadAll(tee)
+	body, err := io.ReadAll(tee)
 	if err != nil {
 		return body, err
 	}
 	if len(body) == 0 {
 		body = []byte("{}")
 	}
-	request.Body = ioutil.NopCloser(bytes.NewBuffer(buf.Bytes()))
+	var temp interface{}
+	err = json.Unmarshal(body, &temp)
+	if err != nil {
+		return nil, err
+	}
+	request.Body = io.NopCloser(bytes.NewBuffer(buf.Bytes()))
 	return body, nil
 }
 
 func validation[B any, Q any](response http.ResponseWriter, request *http.Request) (bool, *http.Request, httpkit.HttpMessage) {
 
 	var message httpkit.HttpMessage
-	body, err := readBody(request, response)
+	body, err := readBody(request)
 	if err != nil {
 		message = httpkit.GenerateErrorHttpMessage(400, "Erro ao ler o corpo da requisição")
 		return false, request, message
@@ -67,7 +71,6 @@ func generic[B any, Q any](response http.ResponseWriter, request *http.Request, 
 
 	}
 	contentType := request.Header.Get("Content-Type")
-
 	if !strings.HasPrefix(contentType, "multipart/form-data") && typeRequest == "FORMDATA" {
 		return httpkit.AppBadRequest("Rota aceita apenas conteudo multipart/form-data não vazios")
 	}
@@ -83,7 +86,6 @@ func generic[B any, Q any](response http.ResponseWriter, request *http.Request, 
 			return httpkit.AppBadRequest("Arquivo excedeu o limite de " + strconv.Itoa(maxSizeFormData) + " MegaBytes")
 		}
 	}
-
 	var valid bool
 	var message httpkit.HttpMessage
 	if r.security == "public" {
@@ -95,14 +97,18 @@ func generic[B any, Q any](response http.ResponseWriter, request *http.Request, 
 		return message
 	}
 	if !strings.HasPrefix(contentType, "multipart/form-data") {
+
 		valid, request, message = validation[B, Q](response, request)
+
 		if !valid {
 			return message
 		}
 	}
 
 	params, err := extractParams(r.endpoint, request.URL.Path)
+
 	if err == nil {
+
 		ctx := context.WithValue(request.Context(), "params", params)
 		message, validMiddleWare := runMiddlewares[B, Q](response, request.WithContext(ctx), r)
 		if !validMiddleWare {
@@ -111,6 +117,7 @@ func generic[B any, Q any](response http.ResponseWriter, request *http.Request, 
 		message = r.controller(response, request.WithContext(ctx))
 		return message
 	}
+
 	message, validMiddleWare := runMiddlewares[B, Q](response, request, r)
 	if !validMiddleWare {
 		return message

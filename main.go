@@ -68,17 +68,5 @@ func main() {
 	licor.Protected[any, any]("/access").Get(access)
 	licor.Protected[any, q]("/access-admin", "admin").Get(accessAdmin)
 
-	licor.Init("3003")
-}
-
-func middle1(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
-	var message httpkit.HttpMessage
-	fmt.Println("Everything good around here, will proceed to the next middleware")
-	return message, true
-}
-
-func middle2(response http.ResponseWriter, request *http.Request) (httpkit.HttpMessage, bool) {
-	var message httpkit.HttpMessage
-	message = httpkit.AppBadRequest("Something went wrong, can't proceed operation")
-	return message, false
+	licor.Init("3001")
 }
